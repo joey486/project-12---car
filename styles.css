@@ -1,2 +1,32 @@
-body { margin: 0; }
-canvas { display: block; }
+body { 
+    margin: 0; 
+}
+canvas { 
+    display: block; 
+}
+
+/* Container for the speedometer */
+.gauge-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .gauge-container .kph {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .gauge-container .label {
+    font-size: 12px;
+  }

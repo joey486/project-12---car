@@ -1,26 +1,35 @@
-import { renderer, controls, carModel, scene, camera } from './main.js'
+import { renderer, controls, carModel, scene, camera } from './main.js';
 
 // Variables to store the movement direction
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-let followCar = false; // Boolean to track if the camera is following the car
+let followCar = true; // Boolean to track if the camera is following the car
 
-// Event listeners for keyboard controls
+// Variables for acceleration and velocity
+export let velocity = new THREE.Vector3(0, 0, 0); // Export velocity
+const acceleration = 0.03;
+const deceleration = 0.95;
+const maxSpeed = 100;
+const rotationAngle = 0.015;
+const rotationAcceleration = acceleration * 1.2;
+const rotationSpeed = acceleration / 10;
+const turnSpeed = 0.005;
+
 window.addEventListener('keydown', function (event) {
     switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW': // Move forward
+        case 'KeyW':
             moveForward = true;
             break;
         case 'ArrowDown':
-        case 'KeyS': // Move backward
+        case 'KeyS':
             moveBackward = true;
             break;
         case 'ArrowLeft':
-        case 'KeyA': // Move left
+        case 'KeyA':
             moveLeft = true;
             break;
         case 'ArrowRight':
-        case 'KeyD': // Move right
+        case 'KeyD':
             moveRight = true;
             break;
     }
@@ -47,41 +56,67 @@ window.addEventListener('keyup', function (event) {
     }
 });
 
-// Event listener for 'F' key to toggle follow mode
 window.addEventListener('keydown', function (event) {
     if (event.code === 'KeyF') {
-        followCar = !followCar; // Toggle follow mode on/off
-        controls.enabled = !followCar; // Disable controls when following the car
+        followCar = !followCar;
+        controls.enabled = !followCar;
     }
 });
 
-// Speed of movement
-const speed = 0.1;
-
-// Extend animation loop to include car movement
 function animate() {
     requestAnimationFrame(animate);
 
-    // Move the car based on the keypress
     if (carModel) {
-        if (moveForward) carModel.translateZ(speed);  // Move forward based on car's direction
-        if (moveBackward) carModel.translateZ(-speed);  // Move backward (reverse) based on car's direction
-        if (moveLeft) carModel.rotation.y += 0.05;     // Rotate the car left
-        if (moveRight) carModel.rotation.y -= 0.05;    // Rotate the car right
+        const forward = new THREE.Vector3(0, 0, 1);
+        const right = new THREE.Vector3(1, 0, 0);
+
+        forward.applyQuaternion(carModel.quaternion);
+        right.applyQuaternion(carModel.quaternion);
+
+        if (moveForward && !moveLeft && !moveRight) {
+            velocity.add(forward.multiplyScalar(acceleration));
+        } else if (moveBackward && !moveLeft && !moveRight) {
+            velocity.add(forward.multiplyScalar(-acceleration));
+        } else if (moveLeft && !moveForward && velocity.length() > 0) {
+            velocity.multiplyScalar(deceleration);
+            velocity.add(right.multiplyScalar(acceleration));
+            carModel.rotation.y += rotationAngle;
+        } else if (moveRight && !moveForward && velocity.length() > 0) {
+            velocity.multiplyScalar(deceleration);
+            velocity.add(right.multiplyScalar(-acceleration));
+            carModel.rotation.y -= rotationAngle;
+        } else if (moveLeft && moveForward) {
+            velocity.add(forward.multiplyScalar(rotationAcceleration));
+            velocity.add(right.multiplyScalar(turnSpeed));
+            carModel.rotation.y += rotationAngle;
+        } else if (moveRight && moveForward) {
+            velocity.add(forward.multiplyScalar(rotationAcceleration));
+            velocity.add(right.multiplyScalar(-turnSpeed));
+            carModel.rotation.y -= rotationAngle;
+        } else if (moveLeft && moveBackward) {
+            velocity.add(forward.multiplyScalar(-rotationAcceleration));
+            velocity.add(right.multiplyScalar(-rotationSpeed));
+            carModel.rotation.y += rotationAngle;
+        } else if (moveRight && moveBackward) {
+            velocity.add(forward.multiplyScalar(-rotationAcceleration));
+            velocity.add(right.multiplyScalar(rotationSpeed));
+            carModel.rotation.y -= rotationAngle;
+        }
+
+        velocity.multiplyScalar(deceleration);
+        velocity.clampLength(0, maxSpeed);
+        carModel.position.add(velocity);
+        
+        // Export updated velocity
+        velocity = velocity;
     }
 
-    // If followCar is true, adjust the camera position to follow the car
     if (followCar && carModel) {
-        const followDistance = 10; // Distance behind the car
-        const cameraOffset = new THREE.Vector3(0, 5, -followDistance); // Slightly above and behind the car
+        const followDistance = 10;
+        const cameraOffset = new THREE.Vector3(0, 5, -followDistance);
 
-        // Apply the car's rotation to the camera's offset
         cameraOffset.applyQuaternion(carModel.quaternion);
-
-        // Position the camera relative to the car
         camera.position.copy(carModel.position).add(cameraOffset);
-
-        // Make the camera look at the car
         camera.lookAt(carModel.position);
     }
 

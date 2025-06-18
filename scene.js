@@ -1,41 +1,83 @@
 import { scene } from "./main.js";
 
+// Set the sky background
 const textureLoader = new THREE.TextureLoader();
 const skyTexture = textureLoader.load('./images/sky.jpg'); // Replace with your sky image path
 scene.background = skyTexture;
 
-// Lighting (Directional light)
+// Add lighting
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(5, 5, 5).normalize();
 scene.add(light);
 
-const sun = new THREE.DirectionalLight(0xffffff,1);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
 sun.position.set(50, 100, 50);
 sun.castShadow = true;
 scene.add(sun);
 
-// Adding a floor (Plane Geometry - Grass)
-const floorGeometry = new THREE.PlaneGeometry(800, 800);
-const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x00FF00, side: THREE.DoubleSide });
-const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = Math.PI / 2; // Rotate to make it horizontal
-floor.position.y = -1.1; // Position it below the model
+// Load textures for the ground
+const grassTexture = textureLoader.load('./images/grass.jpeg');  // Replace with your grass texture
+const grassBumpMap = textureLoader.load('./images/grass bump.jpeg');  // Replace with your bump map texture
+const grassTexture2 = textureLoader.load('./images/grass variation.jpeg');  // Optional second grass texture
+
+// Add variation to the floor by mixing two textures
+const grassMaterial = new THREE.MeshStandardMaterial({
+    map: grassTexture,
+    bumpMap: grassBumpMap,
+    bumpScale: 0.2,
+    side: THREE.DoubleSide
+});
+
+// Add a larger floor (Grass)
+const floorGeometry = new THREE.PlaneGeometry(2000, 2000);
+const floor = new THREE.Mesh(floorGeometry, grassMaterial);
+floor.rotation.x = Math.PI / 2;
+floor.position.y = -1.1;
 scene.add(floor);
 
-// Adding a road (Plane Geometry)
-const roadGeometry = new THREE.PlaneGeometry(10, 800);
-const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, side: THREE.DoubleSide });
-const road = new THREE.Mesh(roadGeometry, roadMaterial);
-road.rotation.x = Math.PI / 2; // Rotate to make it horizontal
-road.position.y = -1; // Slightly above the grass
-scene.add(road);
+
+// Road settings 
+const roadWidth = 5; 
+const roadLength = 10; 
+const segments = 10; // Number of segments to create the curve 
+
+// Material for the road 
+const roadMaterial = new THREE.MeshBasicMaterial({ 
+    color: 0x333333, // Dark grey road 
+    side: THREE.DoubleSide 
+}); 
+
+// Helper function to create a straight road segment 
+function createRoadSegment(width, length) { 
+    const roadGeometry = new THREE.PlaneGeometry(width, length); 
+    const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial); 
+    roadMesh.rotation.x = -Math.PI / 2; // Rotate to lay flat 
+    return roadMesh; 
+} 
+
+// Add a straight road segment 
+const straightRoad = createRoadSegment(roadWidth, roadLength); 
+straightRoad.position.set(0, -1, 0); // Position the first segment 
+scene.add(straightRoad); // Add the curved road segments 
+let curveRadius = 15; // Radius of the curve 
+let angleStep = Math.PI / (2 * segments); // Angle step for each segment (90 degrees curve) 
+
+for (let i = 1; i <= segments; i++) { 
+    const roadSegment = createRoadSegment(roadWidth, roadLength); // Calculate the angle for this segment 
+    const angle = i * angleStep; // Position the road segment in a circular arc 
+    const x = Math.cos(angle) * curveRadius; 
+    const z = Math.sin(angle) * curveRadius; 
+    roadSegment.position.set(x, 0, -z); // Rotate the segment to face the correct direction 
+    roadSegment.rotation.z = -angle; // Add to the scene 
+    scene.add(roadSegment); 
+}  
 
 // Function to add dashed stripe in the middle of the road
 function addDashedStripe() {
     const stripeLength = 2;  // Length of each dash
     const stripeSpacing = 1.5; // Spacing between dashes
     const stripeWidth = 0.3;  // Width of the stripe
-    const numberOfStripes = 300; // Adjust based on road length
+    const numberOfStripes = 600; // Adjust based on road length
 
     const stripeGeometry = new THREE.PlaneGeometry(stripeWidth, stripeLength);
     const stripeMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide });
