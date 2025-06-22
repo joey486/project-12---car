@@ -6,6 +6,8 @@ export const scene = new THREE.Scene();
 // Set up the camera
 export const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
+const coordsDisplay = document.getElementById('coords');
+
 // WebGL Renderer
 export const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -51,11 +53,21 @@ window.addEventListener('resize', function() {
     camera.updateProjectionMatrix();
 });
 
+function updateCoords() {
+    if (!carModel) return;
+    const pos = carModel.position;
+    coordsDisplay.textContent = `X: ${pos.x.toFixed(2)} Y: ${pos.y.toFixed(2)} Z: ${pos.z.toFixed(2)}`;
+}
+
+
+
 // Animation loop (basic)
 export function animate() {
     requestAnimationFrame(animate);
+    updateCoords(); 
     controls.update(); // Required for damping to work
     renderer.render(scene, camera);
 }
+
 
 animate();
