@@ -140,7 +140,7 @@ function createCurvedRoad(radius, startAngle, endAngle, x = 0, z = 0) {
         const x2 = Math.cos(angle2) * radius;
         const z2 = Math.sin(angle2) * radius;
 
-        const segmentLength = Math.sqrt((x2-x1)**2 + (z2-z1)**2) * 2; // The *2 is for smoothening the curve
+        const segmentLength = Math.sqrt((x2-x1)**2 + (z2-z1)**2) * 2; // The * 2 is for smoothening the curve
         const segmentAngle = Math.atan2(x2-x1 , z2-z1 );
         
         const segment = createRoadSegment(ROAD_WIDTH, segmentLength, 
@@ -286,3 +286,7 @@ addStopSign(6, 6, Math.PI/4);
 addStopSign(-6, -6, -3*Math.PI/4);
 addStopSign(6, -6, -Math.PI/4);
 addStopSign(-6, 6, 3*Math.PI/4);
+
+
+// Secondary Road
+

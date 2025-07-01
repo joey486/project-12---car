@@ -1,5 +1,3 @@
-// Scene setup
-
 // Create a scene
 export const scene = new THREE.Scene();
 
