@@ -39,6 +39,7 @@ scene.add(floor);
 
 // Road system configuration
 export const ROAD_WIDTH = 8;
+export const ROAD_RADIUS = 20;
 export const LANE_WIDTH = ROAD_WIDTH / 2;
 const SIDEWALK_WIDTH = 2;
 export const ROAD_HEIGHT = 0.05;
